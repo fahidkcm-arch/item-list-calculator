@@ -50,7 +50,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: #e9ecef;
-            white-space: pre-wrap; /* Keeps line breaks from results */
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -58,13 +58,12 @@
 
 <div class="container">
     <h2>🛍️ Item Cost Calculator</h2>
-    <p>Paste your item list here. The cost should be the **last number** on each line. Only numbers will be calculated.</p>
+    <p>Paste your item list here. The calculator will use the **first number** it finds on each line for calculation.</p>
 
     <textarea id="dataInput" placeholder="Example:
-Apple 1.99
-Banana 0.50
-Milk Gallon 4.25
-Taxes (non-cost) 0.00
+1.99 Apple price
+0.50 Banana cost
+Milk Gallon 4.25 (will use 4.25 because it's the first number)
 " autofocus></textarea>
 
     <select id="operationSelect">
@@ -94,12 +93,11 @@ function calculate() {
     // 1. Split the data into lines
     const lines = data.split('\n').filter(line => line.trim() !== '');
     
-    // 2. Extract the cost (last number) from each line
+    // 2. Extract the cost (first number) from each line
     const costs = [];
     lines.forEach(line => {
-        // Regex to find the last sequence of digits and optional decimal points/commas
-        // This is a robust way to extract the final number on a line.
-        const match = line.match(/[\d.,]+\s*$/); 
+        // CHANGED: We now use /[\d.,]+/ which finds the FIRST number pattern on the line.
+        const match = line.match(/[\d.,]+/); 
         if (match) {
             // Clean the matched number (remove commas, use dot for decimal)
             const cleanCostStr = match[0].replace(',', '').trim();
@@ -113,20 +111,18 @@ function calculate() {
     let output = '';
     
     if (costs.length === 0) {
-        resultsDiv.innerHTML = '⚠️ **No valid costs found to calculate.** Please ensure each line has a number.';
+        resultsDiv.innerHTML = '⚠️ **No valid numbers found to calculate.**';
         return;
     }
 
     // 3. Perform calculations based on selection
     
-    // Helper function for calculations
     const performCalculations = () => {
         const sum = costs.reduce((acc, current) => acc + current, 0);
         const count = costs.length;
         const average = sum / count;
         const min = Math.min(...costs);
         const max = Math.max(...costs);
-
         return { sum, count, average, min, max };
     };
 
@@ -137,26 +133,21 @@ function calculate() {
     
     switch (operation) {
         case 'sum':
-            // REMOVED $ SYMBOL HERE
             output = `**Total Sum:** ${formatNumber(calculations.sum)}`;
             break;
         case 'count':
             output = `**Total Items Counted:** ${calculations.count}`;
             break;
         case 'average':
-            // REMOVED $ SYMBOL HERE
             output = `**Average Cost:** ${formatNumber(calculations.average)}`;
             break;
         case 'min':
-            // REMOVED $ SYMBOL HERE
             output = `**Minimum Cost:** ${formatNumber(calculations.min)}`;
             break;
         case 'max':
-            // REMOVED $ SYMBOL HERE
             output = `**Maximum Cost:** ${formatNumber(calculations.max)}`;
             break;
         case 'all':
-            // REMOVED $ SYMBOL HERE
             output = `**Summary of Calculations**
 ----------------------------------
 **Total Items Counted:** ${calculations.count}
@@ -170,7 +161,7 @@ function calculate() {
     }
 
     // 4. Display the results
-    resultsDiv.innerHTML = output.replace(/\n/g, '<br>'); // Display in results box
+    resultsDiv.innerHTML = output.replace(/\n/g, '<br>');
 }
 </script>
 
