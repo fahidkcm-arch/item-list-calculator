@@ -3,163 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flexible Item List Calculator</title>
+    <title>Advanced Item List Calculator</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* CSS for simple styling */
+        /* Custom styles for a clean interface */
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f9;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
         }
         .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 90%;
+            margin: 2rem auto;
+            min-width: 320px;
         }
         textarea {
-            width: 100%;
-            height: 200px;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            min-height: 15rem;
             font-family: monospace;
+            font-size: 0.9rem;
         }
-        select, button {
-            padding: 10px;
-            margin-right: 10px;
+        /* Custom scrollbar for aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
             border-radius: 4px;
-            border: 1px solid #007bff;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #results {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #e9ecef;
-            white-space: pre-wrap;
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
         }
     </style>
 </head>
-<body>
+<body class="p-4 sm:p-8">
 
-<div class="container">
-    <h2>🛍️ Flexible Item Cost Calculator</h2>
-    <p>Paste your item list. Select the format below so the calculator knows where the **Price/Cost** is located.</p>
-
-    <textarea id="dataInput" placeholder="Example of Name/Quantity/Price:
-apple 2 215
-orange 1 515
-" autofocus></textarea>
-
-    <div class="controls">
-        <select id="formatSelect">
-            <option value="last">Format: Name / Quantity / **Price** (Price is the last number)</option>
-            <option value="first">Format: **Price** / Name (Price is the first number)</option>
-            <option value="priceonly">Format: **Price** only, one per line</option>
-            <option value="second">Format: Name / **Quantity** / Price (Quantity is the second number, Price is the third)</option>
-        </select>
-        
-        <select id="operationSelect">
-            <option value="sum">Sum (Total Cost)</option>
-            <option value="count">Count (Total Items)</option>
-            <option value="average">Average Cost</option>
-            <option value="min">Minimum Cost</option>
-            <option value="max">Maximum Cost</option>
-            <option value="all">All Calculations</option>
-        </select>
+<div class="container bg-white shadow-2xl rounded-xl p-6 lg:p-10 border border-gray-100">
+    <h1 class="text-3xl font-extrabold text-blue-700 mb-6 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.375 6.875c.035.188.188.318.374.318H18a.999.999 0 00.957-.798l-1-5A1 1 0 0017 5H6.28l-.31-1.243A1 1 0 005 3V1H3zM16.5 16a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+        </svg>
+        Advanced Item List Calculator
+    </h1>
     
-        <button onclick="calculate()">Calculate</button>
+    <p class="text-gray-600 mb-6">Enter your item list below. Use the format selector to ensure accurate number extraction and calculation.</p>
+
+    <!-- The Item List Input Area -->
+    <textarea id="dataInput" 
+              class="w-full border border-gray-300 rounded-lg p-4 focus:ring-indigo-500 focus:border-indigo-500 shadow-inner transition duration-150 ease-in-out" 
+              placeholder="Example (Quantity x Price Format):
+iPhone 2 1200
+Cable 5 25.50
+T-Shirt 1 35
+" 
+              oninput="updateResults()"></textarea>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <!-- 1. Format Selector -->
+        <div class="col-span-1 md:col-span-2">
+            <label for="formatSelect" class="block text-sm font-medium text-gray-700 mb-1">Data Format Selection</label>
+            <select id="formatSelect" onchange="updateResults()" class="w-full border border-gray-300 bg-white rounded-lg p-3 text-gray-800 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                <option value="qty-x-price">Name / Quantity / **Price** (Calculates Qty x Price)</option>
+                <option value="price-last">Name / Qty / ... / **Price** (Uses ONLY the last number)</option>
+                <option value="price-first">**Price** / Name / Qty (Uses ONLY the first number)</option>
+                <option value="price-only">**Price** only, one per line (Uses ONLY the first number)</option>
+            </select>
+        </div>
+
+        <!-- 2. Main Operation -->
+        <div class="col-span-1">
+            <label for="operationSelect" class="block text-sm font-medium text-gray-700 mb-1">Calculation Type</label>
+            <select id="operationSelect" onchange="updateResults()" class="w-full border border-gray-300 bg-white rounded-lg p-3 text-gray-800 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                <option value="sum">Sum of Costs (Subtotal)</option>
+                <option value="count">Count (Total Items)</option>
+                <option value="average">Average Cost</option>
+                <option value="min">Minimum Cost</option>
+                <option value="max">Maximum Cost</option>
+            </select>
+        </div>
     </div>
 
-    <h3>Results:</h3>
-    <div id="results">
-        Your results will appear here.
+    <!-- 3. Tax & Discount Inputs -->
+    <div class="grid grid-cols-2 gap-4 mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+            <label for="taxInput" class="block text-sm font-medium text-gray-700 mb-1">Tax Percentage (%)</label>
+            <input type="number" id="taxInput" value="0" min="0" max="100" oninput="updateResults()" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-green-500 focus:border-green-500 shadow-sm">
+        </div>
+        <div>
+            <label for="discountInput" class="block text-sm font-medium text-gray-700 mb-1">Discount Percentage (%)</label>
+            <input type="number" id="discountInput" value="0" min="0" max="100" oninput="updateResults()" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-red-500 focus:border-red-500 shadow-sm">
+        </div>
+    </div>
+
+
+    <!-- 4. Results Display Area -->
+    <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Results</h3>
+    <div id="results" class="bg-indigo-50 p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 text-gray-800 transition duration-300">
+        Start typing your list above to see the results here.
     </div>
 </div>
 
 <script>
-// JavaScript logic
+// Global utility to format numbers to two decimal places
+const formatNumber = (num) => parseFloat(num).toFixed(2);
+const resultsDiv = document.getElementById('results');
+
+/**
+ * Extracts the cost based on the line and the selected format.
+ * If 'qty-x-price' is selected, it multiplies the last two numbers found (Qty * Price).
+ * @param {string} line - The single line of text input.
+ * @param {string} format - The selected data format ('price-only', 'price-first', 'price-last', 'qty-x-price').
+ * @returns {number | null} The calculated item cost or null if parsing fails.
+ */
 function extractCost(line, format) {
-    // Regex to find all potential numbers (digits, periods, commas)
-    const numbers = line.match(/[\d.,]+/g); 
+    // Regex to find ALL potential numbers (digits, periods, commas)
+    // The 'g' flag ensures we find all matches, not just the first one.
+    const numberMatches = line.match(/[\d.,]+/g); 
     
-    if (!numbers || numbers.length === 0) {
+    if (!numberMatches || numberMatches.length === 0) {
         return null;
     }
 
-    let costString = null;
+    // Clean numbers: remove commas and convert to float
+    const numbers = numberMatches.map(str => parseFloat(str.replace(/,/g, '').trim())).filter(n => !isNaN(n));
     
+    if (numbers.length === 0) {
+        return null;
+    }
+
+    let itemCost = null;
+
     switch (format) {
-        case 'first':
-        case 'priceonly':
-            // Price is the first number found
-            costString = numbers[0];
+        case 'price-only':
+        case 'price-first':
+            // Use the first number found
+            itemCost = numbers[0];
             break;
 
-        case 'last':
-            // Price is the last number found (Name/Quantity/PRICE)
-            costString = numbers[numbers.length - 1];
+        case 'price-last':
+            // Use the last number found (useful for Name/Qty/PRICE where Qty might also be a number)
+            itemCost = numbers[numbers.length - 1];
             break;
-
-        case 'second':
-            // This assumes three numbers: Name / QUANTITY / PRICE
-            // We want the last one, which is the third number, but we'll use the 'last' logic
-            // for safety since the Quantity is often the second number.
+        
+        case 'qty-x-price':
+            // Advanced format: Assumes Quantity (Q) and Price (P) are the last two numbers
             if (numbers.length >= 2) {
-                // If there are 3 or more numbers (e.g., apple 2 215), the price is the last one (215)
-                // If there are exactly 2 numbers (e.g., apple 2 215), the price is the second one (515)
-                costString = numbers[numbers.length - 1];
+                const price = numbers[numbers.length - 1]; // Last number is Price
+                const quantity = numbers[numbers.length - 2]; // Second to last is Quantity
+
+                // If quantity is 0, skip calculation, otherwise Q * P
+                itemCost = (quantity > 0) ? quantity * price : price;
             } else {
-                // If only one number is found, assume it's the price
-                costString = numbers[0];
+                // If only one number is found, assume it's the price (quantity is 1)
+                itemCost = numbers[0];
             }
             break;
     }
 
-    if (costString) {
-        // Clean the number (remove commas, use dot for decimal) and parse it
-        const cleanCostStr = costString.replace(',', '').trim();
-        const cost = parseFloat(cleanCostStr);
-        return isNaN(cost) ? null : cost;
-    }
-    
-    return null;
+    return (itemCost !== null && itemCost >= 0) ? itemCost : null;
 }
 
 
-function calculate() {
+/**
+ * Main function to read inputs, calculate results, and update the display.
+ * This is now triggered on any input change (real-time).
+ */
+function updateResults() {
     const data = document.getElementById('dataInput').value;
     const operation = document.getElementById('operationSelect').value;
-    const format = document.getElementById('formatSelect').value; // Get the selected format
-    const resultsDiv = document.getElementById('results');
+    const format = document.getElementById('formatSelect').value;
+    const taxRate = parseFloat(document.getElementById('taxInput').value) / 100 || 0;
+    const discountRate = parseFloat(document.getElementById('discountInput').value) / 100 || 0;
     
-    // 1. Split the data into lines
+    // 1. Split and process lines
     const lines = data.split('\n').filter(line => line.trim() !== '');
-    
-    // 2. Extract the cost based on the selected format
     const costs = [];
+    
     lines.forEach(line => {
         const cost = extractCost(line, format);
         if (cost !== null) {
@@ -170,55 +185,69 @@ function calculate() {
     let output = '';
     
     if (costs.length === 0) {
-        resultsDiv.innerHTML = '⚠️ **No valid numbers found to calculate based on the selected format.**';
+        resultsDiv.innerHTML = '<p class="text-yellow-600 font-medium">⚠️ No valid numbers found based on the selected format. Please check your list.</p>';
         return;
     }
 
-    // 3. Perform calculations based on selection
-    const performCalculations = () => {
-        const sum = costs.reduce((acc, current) => acc + current, 0);
-        const count = costs.length;
-        const average = sum / count;
-        const min = Math.min(...costs);
-        const max = Math.max(...costs);
-        return { sum, count, average, min, max };
-    };
+    // 2. Core calculations
+    const sum = costs.reduce((acc, current) => acc + current, 0);
+    const count = costs.length;
+    const average = sum / count;
+    const min = Math.min(...costs);
+    const max = Math.max(...costs);
 
-    const calculations = performCalculations();
-    const formatNumber = (num) => num.toFixed(2);
+    // 3. Tax and Discount application (Advanced Features)
+    const subtotal = sum;
+    const discountAmount = subtotal * discountRate;
+    const taxableSubtotal = subtotal - discountAmount;
+    const taxAmount = taxableSubtotal * taxRate;
+    const finalTotal = taxableSubtotal + taxAmount;
     
-    switch (operation) {
-        case 'sum':
-            output = `**Total Sum:** ${formatNumber(calculations.sum)}`;
-            break;
-        case 'count':
-            output = `**Total Items Counted:** ${calculations.count}`;
-            break;
-        case 'average':
-            output = `**Average Cost:** ${formatNumber(calculations.average)}`;
-            break;
-        case 'min':
-            output = `**Minimum Cost:** ${formatNumber(calculations.min)}`;
-            break;
-        case 'max':
-            output = `**Maximum Cost:** ${formatNumber(calculations.max)}`;
-            break;
-        case 'all':
-            output = `**Summary of Calculations**
-----------------------------------
-**Total Items Counted:** ${calculations.count}
-**Total Sum (Cost):** ${formatNumber(calculations.sum)}
-**Average Cost:** ${formatNumber(calculations.average)}
-**Minimum Cost:** ${formatNumber(calculations.min)}
-**Maximum Cost:** ${formatNumber(calculations.max)}`;
-            break;
-        default:
-            output = 'Invalid operation selected.';
+    // 4. Generate Output based on selected operation
+    
+    if (operation === 'sum') {
+        output = `
+            <div class="space-y-3">
+                <p class="text-xl font-bold text-indigo-700">Subtotal (Sum of Costs): ${formatNumber(subtotal)}</p>
+                <p class="text-lg text-red-600">Discount Applied (${(discountRate * 100).toFixed(0)}%): - ${formatNumber(discountAmount)}</p>
+                <p class="text-lg text-green-600">Tax Applied (${(taxRate * 100).toFixed(0)}%): + ${formatNumber(taxAmount)}</p>
+                <div class="pt-2 border-t border-indigo-200">
+                    <p class="text-2xl font-extrabold text-blue-800">Final Grand Total: ${formatNumber(finalTotal)}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        // Output for Count, Average, Min, Max
+        switch (operation) {
+            case 'count':
+                output = `<p class="text-xl font-bold">Total Items Parsed: ${count}</p>`;
+                break;
+            case 'average':
+                output = `<p class="text-xl font-bold">Average Item Cost: ${formatNumber(average)}</p>`;
+                break;
+            case 'min':
+                output = `<p class="text-xl font-bold">Minimum Cost Item: ${formatNumber(min)}</p>`;
+                break;
+            case 'max':
+                output = `<p class="text-xl font-bold">Maximum Cost Item: ${formatNumber(max)}</p>`;
+                break;
+        }
+        
+        // Always include the full breakdown at the bottom for context
+        output += `
+            <div class="mt-4 pt-4 border-t border-indigo-200 text-sm text-gray-600">
+                <p><strong>Subtotal:</strong> ${formatNumber(subtotal)}</p>
+                <p><strong>Final Total (with Tax/Discount):</strong> ${formatNumber(finalTotal)}</p>
+            </div>
+        `;
     }
 
-    // 4. Display the results
-    resultsDiv.innerHTML = output.replace(/\n/g, '<br>');
+    // 5. Display the results
+    resultsDiv.innerHTML = output;
 }
+
+// Run initial calculation when the page loads (in case there's placeholder text)
+window.onload = updateResults;
 </script>
 
 </body>
