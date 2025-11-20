@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item List Calculator</title>
+    <title>Flexible Item List Calculator</title>
     <style>
         /* CSS for simple styling */
         body {
@@ -35,6 +35,7 @@
             border-radius: 4px;
             border: 1px solid #007bff;
             cursor: pointer;
+            margin-bottom: 10px;
         }
         button {
             background-color: #007bff;
@@ -52,30 +53,45 @@
             background-color: #e9ecef;
             white-space: pre-wrap;
         }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🛍️ Item Cost Calculator</h2>
-    <p>Paste your item list here. The calculator will use the **first number** it finds on each line for calculation.</p>
+    <h2>🛍️ Flexible Item Cost Calculator</h2>
+    <p>Paste your item list. Select the format below so the calculator knows where the **Price/Cost** is located.</p>
 
-    <textarea id="dataInput" placeholder="Example:
-1.99 Apple price
-0.50 Banana cost
-Milk Gallon 4.25 (will use 4.25 because it's the first number)
+    <textarea id="dataInput" placeholder="Example of Name/Quantity/Price:
+apple 2 215
+orange 1 515
 " autofocus></textarea>
 
-    <select id="operationSelect">
-        <option value="sum">Sum (Total Cost)</option>
-        <option value="count">Count (Total Items)</option>
-        <option value="average">Average Cost</option>
-        <option value="min">Minimum Cost</option>
-        <option value="max">Maximum Cost</option>
-        <option value="all">All Calculations</option>
-    </select>
-
-    <button onclick="calculate()">Calculate</button>
+    <div class="controls">
+        <select id="formatSelect">
+            <option value="last">Format: Name / Quantity / **Price** (Price is the last number)</option>
+            <option value="first">Format: **Price** / Name (Price is the first number)</option>
+            <option value="priceonly">Format: **Price** only, one per line</option>
+            <option value="second">Format: Name / **Quantity** / Price (Quantity is the second number, Price is the third)</option>
+        </select>
+        
+        <select id="operationSelect">
+            <option value="sum">Sum (Total Cost)</option>
+            <option value="count">Count (Total Items)</option>
+            <option value="average">Average Cost</option>
+            <option value="min">Minimum Cost</option>
+            <option value="max">Maximum Cost</option>
+            <option value="all">All Calculations</option>
+        </select>
+    
+        <button onclick="calculate()">Calculate</button>
+    </div>
 
     <h3>Results:</h3>
     <div id="results">
@@ -85,38 +101,80 @@ Milk Gallon 4.25 (will use 4.25 because it's the first number)
 
 <script>
 // JavaScript logic
+function extractCost(line, format) {
+    // Regex to find all potential numbers (digits, periods, commas)
+    const numbers = line.match(/[\d.,]+/g); 
+    
+    if (!numbers || numbers.length === 0) {
+        return null;
+    }
+
+    let costString = null;
+    
+    switch (format) {
+        case 'first':
+        case 'priceonly':
+            // Price is the first number found
+            costString = numbers[0];
+            break;
+
+        case 'last':
+            // Price is the last number found (Name/Quantity/PRICE)
+            costString = numbers[numbers.length - 1];
+            break;
+
+        case 'second':
+            // This assumes three numbers: Name / QUANTITY / PRICE
+            // We want the last one, which is the third number, but we'll use the 'last' logic
+            // for safety since the Quantity is often the second number.
+            if (numbers.length >= 2) {
+                // If there are 3 or more numbers (e.g., apple 2 215), the price is the last one (215)
+                // If there are exactly 2 numbers (e.g., apple 2 215), the price is the second one (515)
+                costString = numbers[numbers.length - 1];
+            } else {
+                // If only one number is found, assume it's the price
+                costString = numbers[0];
+            }
+            break;
+    }
+
+    if (costString) {
+        // Clean the number (remove commas, use dot for decimal) and parse it
+        const cleanCostStr = costString.replace(',', '').trim();
+        const cost = parseFloat(cleanCostStr);
+        return isNaN(cost) ? null : cost;
+    }
+    
+    return null;
+}
+
+
 function calculate() {
     const data = document.getElementById('dataInput').value;
     const operation = document.getElementById('operationSelect').value;
+    const format = document.getElementById('formatSelect').value; // Get the selected format
     const resultsDiv = document.getElementById('results');
     
     // 1. Split the data into lines
     const lines = data.split('\n').filter(line => line.trim() !== '');
     
-    // 2. Extract the cost (first number) from each line
+    // 2. Extract the cost based on the selected format
     const costs = [];
     lines.forEach(line => {
-        // CHANGED: We now use /[\d.,]+/ which finds the FIRST number pattern on the line.
-        const match = line.match(/[\d.,]+/); 
-        if (match) {
-            // Clean the matched number (remove commas, use dot for decimal)
-            const cleanCostStr = match[0].replace(',', '').trim();
-            const cost = parseFloat(cleanCostStr);
-            if (!isNaN(cost)) {
-                costs.push(cost);
-            }
+        const cost = extractCost(line, format);
+        if (cost !== null) {
+            costs.push(cost);
         }
     });
 
     let output = '';
     
     if (costs.length === 0) {
-        resultsDiv.innerHTML = '⚠️ **No valid numbers found to calculate.**';
+        resultsDiv.innerHTML = '⚠️ **No valid numbers found to calculate based on the selected format.**';
         return;
     }
 
     // 3. Perform calculations based on selection
-    
     const performCalculations = () => {
         const sum = costs.reduce((acc, current) => acc + current, 0);
         const count = costs.length;
@@ -127,8 +185,6 @@ function calculate() {
     };
 
     const calculations = performCalculations();
-    
-    // Format a number to two decimal places
     const formatNumber = (num) => num.toFixed(2);
     
     switch (operation) {
