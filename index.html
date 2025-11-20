@@ -137,28 +137,33 @@ function calculate() {
     
     switch (operation) {
         case 'sum':
-            output = `**Total Sum:** \$${formatNumber(calculations.sum)}`;
+            // REMOVED $ SYMBOL HERE
+            output = `**Total Sum:** ${formatNumber(calculations.sum)}`;
             break;
         case 'count':
             output = `**Total Items Counted:** ${calculations.count}`;
             break;
         case 'average':
-            output = `**Average Cost:** \$${formatNumber(calculations.average)}`;
+            // REMOVED $ SYMBOL HERE
+            output = `**Average Cost:** ${formatNumber(calculations.average)}`;
             break;
         case 'min':
-            output = `**Minimum Cost:** \$${formatNumber(calculations.min)}`;
+            // REMOVED $ SYMBOL HERE
+            output = `**Minimum Cost:** ${formatNumber(calculations.min)}`;
             break;
         case 'max':
-            output = `**Maximum Cost:** \$${formatNumber(calculations.max)}`;
+            // REMOVED $ SYMBOL HERE
+            output = `**Maximum Cost:** ${formatNumber(calculations.max)}`;
             break;
         case 'all':
+            // REMOVED $ SYMBOL HERE
             output = `**Summary of Calculations**
 ----------------------------------
 **Total Items Counted:** ${calculations.count}
-**Total Sum (Cost):** \$${formatNumber(calculations.sum)}
-**Average Cost:** \$${formatNumber(calculations.average)}
-**Minimum Cost:** \$${formatNumber(calculations.min)}
-**Maximum Cost:** \$${formatNumber(calculations.max)}`;
+**Total Sum (Cost):** ${formatNumber(calculations.sum)}
+**Average Cost:** ${formatNumber(calculations.average)}
+**Minimum Cost:** ${formatNumber(calculations.min)}
+**Maximum Cost:** ${formatNumber(calculations.max)}`;
             break;
         default:
             output = 'Invalid operation selected.';
