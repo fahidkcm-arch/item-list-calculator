@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item List Calculator</title>
+    <style>
+        /* CSS for simple styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        select, button {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #007bff;
+            cursor: pointer;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            white-space: pre-wrap; /* Keeps line breaks from results */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🛍️ Item Cost Calculator</h2>
+    <p>Paste your item list here. The cost should be the **last number** on each line. Only numbers will be calculated.</p>
+
+    <textarea id="dataInput" placeholder="Example:
+Apple 1.99
+Banana 0.50
+Milk Gallon 4.25
+Taxes (non-cost) 0.00
+" autofocus></textarea>
+
+    <select id="operationSelect">
+        <option value="sum">Sum (Total Cost)</option>
+        <option value="count">Count (Total Items)</option>
+        <option value="average">Average Cost</option>
+        <option value="min">Minimum Cost</option>
+        <option value="max">Maximum Cost</option>
+        <option value="all">All Calculations</option>
+    </select>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <h3>Results:</h3>
+    <div id="results">
+        Your results will appear here.
+    </div>
+</div>
+
+<script>
+// JavaScript logic
+function calculate() {
+    const data = document.getElementById('dataInput').value;
+    const operation = document.getElementById('operationSelect').value;
+    const resultsDiv = document.getElementById('results');
+    
+    // 1. Split the data into lines
+    const lines = data.split('\n').filter(line => line.trim() !== '');
+    
+    // 2. Extract the cost (last number) from each line
+    const costs = [];
+    lines.forEach(line => {
+        // Regex to find the last sequence of digits and optional decimal points/commas
+        // This is a robust way to extract the final number on a line.
+        const match = line.match(/[\d.,]+\s*$/); 
+        if (match) {
+            // Clean the matched number (remove commas, use dot for decimal)
+            const cleanCostStr = match[0].replace(',', '').trim();
+            const cost = parseFloat(cleanCostStr);
+            if (!isNaN(cost)) {
+                costs.push(cost);
+            }
+        }
+    });
+
+    let output = '';
+    
+    if (costs.length === 0) {
+        resultsDiv.innerHTML = '⚠️ **No valid costs found to calculate.** Please ensure each line has a number.';
+        return;
+    }
+
+    // 3. Perform calculations based on selection
+    
+    // Helper function for calculations
+    const performCalculations = () => {
+        const sum = costs.reduce((acc, current) => acc + current, 0);
+        const count = costs.length;
+        const average = sum / count;
+        const min = Math.min(...costs);
+        const max = Math.max(...costs);
+
+        return { sum, count, average, min, max };
+    };
+
+    const calculations = performCalculations();
+    
+    // Format a number to two decimal places
+    const formatNumber = (num) => num.toFixed(2);
+    
+    switch (operation) {
+        case 'sum':
+            output = `**Total Sum:** \$${formatNumber(calculations.sum)}`;
+            break;
+        case 'count':
+            output = `**Total Items Counted:** ${calculations.count}`;
+            break;
+        case 'average':
+            output = `**Average Cost:** \$${formatNumber(calculations.average)}`;
+            break;
+        case 'min':
+            output = `**Minimum Cost:** \$${formatNumber(calculations.min)}`;
+            break;
+        case 'max':
+            output = `**Maximum Cost:** \$${formatNumber(calculations.max)}`;
+            break;
+        case 'all':
+            output = `**Summary of Calculations**
+----------------------------------
+**Total Items Counted:** ${calculations.count}
+**Total Sum (Cost):** \$${formatNumber(calculations.sum)}
+**Average Cost:** \$${formatNumber(calculations.average)}
+**Minimum Cost:** \$${formatNumber(calculations.min)}
+**Maximum Cost:** \$${formatNumber(calculations.max)}`;
+            break;
+        default:
+            output = 'Invalid operation selected.';
+    }
+
+    // 4. Display the results
+    resultsDiv.innerHTML = output.replace(/\n/g, '<br>'); // Display in results box
+}
+</script>
+
+</body>
+</html>
